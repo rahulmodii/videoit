@@ -1,0 +1,9 @@
+{
+  "name": "video",
+  "version": "1.0.0",
+  "description": "AI-assisted video editing: cut, structure, and augment real footage through FFmpeg, Remotion, ElevenLabs, fal.ai, Descript.",
+  "author": {
+    "name": "Rahul Modi",
+    "url": "https://rahulmodi.dev"
+  }
+}

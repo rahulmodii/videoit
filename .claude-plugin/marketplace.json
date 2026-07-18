@@ -1,0 +1,25 @@
+{
+  "name": "video",
+  "owner": {
+    "name": "Rahul Modi",
+    "url": "https://rahulmodi.dev"
+  },
+  "metadata": {
+    "description": "AI-assisted video editing skill for Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "video",
+      "source": "./plugins/video",
+      "description": "AI-assisted video editing: cut, structure, and augment real footage through FFmpeg, Remotion, ElevenLabs, fal.ai, Descript.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Rahul Modi",
+        "url": "https://rahulmodi.dev"
+      },
+      "keywords": ["video", "ffmpeg", "remotion", "editing", "content"],
+      "category": "media"
+    }
+  ]
+}

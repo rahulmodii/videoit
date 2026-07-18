@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>video — AI-assisted editing for Claude Code</title>
+<meta name="description" content="A Claude Code skill for cutting, structuring, and augmenting real footage. FFmpeg, Remotion, ElevenLabs, fal.ai, Descript — one pipeline.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23E8B23A'/><polygon points='38,30 74,50 38,70' fill='%230B2416'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt:#0B2416;--felt-deep:#071A10;--felt-line:#1C3B29;
+  --chalk:#F2EDE0;--chalk-dim:#9DB3A4;
+  --gold:#E8B23A;--gold-soft:#F3CD7A;--loss:#E05A4E;--win:#5FC98E;
+  --mono:'Space Mono',monospace;--disp:'Bricolage Grotesque',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--felt);color:var(--chalk);font-family:var(--disp);line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 90% 60% at 50% -10%,rgba(232,178,58,.08),transparent 60%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E")}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+::selection{background:var(--gold);color:var(--felt-deep)}
+nav{display:flex;justify-content:space-between;align-items:center;padding:28px 0}
+.brand{font-family:var(--mono);font-weight:700;font-size:18px;color:var(--chalk);text-decoration:none}
+.brand .dot{color:var(--gold)}
+nav .links{display:flex;gap:26px}
+nav .links a{color:var(--chalk-dim);text-decoration:none;font-size:14px;font-family:var(--mono);transition:color .2s}
+nav .links a:hover{color:var(--gold)}
+.hero{padding:64px 0 48px;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+h1{font-size:clamp(46px,7vw,78px);font-weight:800;line-height:.98;letter-spacing:-2.5px;margin-bottom:22px}
+h1 .cut{color:var(--gold);font-style:italic}
+.sub{font-size:18px;color:var(--chalk-dim);max-width:440px;margin-bottom:32px}
+.sub strong{color:var(--chalk);font-weight:600}
+.cmd{display:flex;align-items:center;gap:12px;background:var(--felt-deep);border:1px solid var(--felt-line);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:13.5px;max-width:520px}
+.cmd + .cmd{margin-top:10px}
+.cmd .p{color:var(--gold);user-select:none}
+.cmd code{flex:1;color:var(--chalk);overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.copy{background:none;border:1px solid var(--felt-line);color:var(--chalk-dim);border-radius:6px;padding:5px 10px;font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.copy:hover{border-color:var(--gold);color:var(--gold)}
+.copy.done{border-color:var(--win);color:var(--win)}
+.term{background:var(--felt-deep);border:1px solid var(--felt-line);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.45);overflow:hidden}
+.term-bar{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid var(--felt-line)}
+.term-bar i{width:11px;height:11px;border-radius:50%}
+.term-bar i:first-child{background:var(--loss)}.term-bar i:nth-child(2){background:var(--gold)}.term-bar i:nth-child(3){background:var(--win)}
+.term-bar span{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--chalk-dim)}
+.term-body{padding:20px;font-family:var(--mono);font-size:12.5px;line-height:1.8;white-space:pre-wrap}
+.t-p{color:var(--gold)}.t-dim{color:var(--chalk-dim)}.t-gold{color:var(--gold-soft)}.t-win{color:var(--win)}
+section{padding:72px 0}
+.sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:44px}
+h2{font-size:clamp(30px,4.5vw,44px);font-weight:800;letter-spacing:-1.5px}
+.sec-head .tag{font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:2px;text-transform:uppercase}
+.pipe{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.stage{background:var(--felt-deep);border:1px solid var(--felt-line);border-radius:14px;padding:26px;transition:border-color .25s,transform .25s}
+.stage:hover{border-color:rgba(232,178,58,.4);transform:translateY(-3px)}
+.stage .n{font-family:var(--mono);font-size:12px;color:var(--gold);margin-bottom:14px}
+.stage h3{font-size:19px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px}
+.stage p{font-size:14px;color:var(--chalk-dim)}
+.stage p code{font-family:var(--mono);font-size:12px;color:var(--gold-soft);background:rgba(232,178,58,.08);padding:1px 6px;border-radius:4px}
+.thesis{background:var(--felt-deep);border:1px solid var(--felt-line);border-left:4px solid var(--gold);border-radius:14px;padding:32px 36px;max-width:760px}
+.thesis p{font-size:19px;color:var(--chalk)}
+.thesis p em{color:var(--gold-soft)}
+footer{padding:56px 0 40px;border-top:1px solid var(--felt-line);margin-top:40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+footer p{font-family:var(--mono);font-size:12.5px;color:var(--chalk-dim)}
+footer a{color:var(--gold);text-decoration:none}
+footer a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media(max-width:880px){
+  .hero{grid-template-columns:1fr;gap:40px}
+  .pipe{grid-template-columns:1fr}
+  nav .links{gap:16px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav>
+  <a class="brand" href="#">video<span class="dot">.</span></a>
+  <div class="links">
+    <a href="#pipeline">pipeline</a>
+    <a href="https://github.com/rahulmodii/video">github</a>
+    <a href="https://rahulmodii.github.io/betit/">betit</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div>
+    <p class="eyebrow">a claude code skill</p>
+    <h1>Raw footage in. <span class="cut">Final cut</span> out.</h1>
+    <p class="sub">A skill that teaches Claude the full editing pipeline — transcribe, structure, cut with <strong>FFmpeg</strong>, compose with <strong>Remotion</strong>, augment with <strong>ElevenLabs</strong> and <strong>fal.ai</strong>, polish in Descript. Compression, not generation.</p>
+    <div class="cmd"><span class="p">/</span><code>plugin marketplace add rahulmodii/video</code><button class="copy" data-c="/plugin marketplace add rahulmodii/video">copy</button></div>
+    <div class="cmd"><span class="p">/</span><code>plugin install video@video</code><button class="copy" data-c="/plugin install video@video">copy</button></div>
+  </div>
+  <div class="term" aria-label="Example session">
+    <div class="term-bar"><i></i><i></i><i></i><span>claude — video</span></div>
+    <div class="term-body"><span class="t-p">&gt; </span>turn this 4-hour screen recording into a 12-min cut
+
+<span class="t-gold">◆ video skill active</span>
+<span class="t-dim">  · transcribing + labeling segments
+  · found 6 dead zones, 3 repeated takes
+  · edit decision list → 14 keep-segments</span>
+
+<span class="t-dim">ffmpeg -ss 00:12:04 -to 00:19:31 -i raw.mp4 \
+  -c copy seg01.mp4</span>
+
+<span class="t-win">✓ 14 cuts scaffolded · Remotion comp for intro
+✓ b-roll gaps flagged for fal.ai</span></div>
+  </div>
+</header>
+
+<section>
+  <div class="thesis">
+    <p>AI video editing works when you stop asking it to <em>create</em> the video and start using it to <em>compress, structure, and augment</em> real footage. The value is not generation. The value is compression.</p>
+  </div>
+</section>
+
+<section id="pipeline">
+  <div class="sec-head"><span class="tag">the pipeline</span><h2>Six layers, each with one job</h2></div>
+  <div class="pipe">
+    <div class="stage"><div class="n">layer 1</div><h3>Capture</h3><p>Screen Studio for polished demos, raw camera for vlogs, desktop capture via <code>videodb</code>. Collect everything — cutting comes later.</p></div>
+    <div class="stage"><div class="n">layer 2</div><h3>Organize</h3><p>Claude transcribes, labels topics, finds dead sections and repeated takes, and produces an edit decision list with timestamps.</p></div>
+    <div class="stage"><div class="n">layer 3</div><h3>Cut</h3><p><code>FFmpeg</code> executes the EDL — lossless segment cuts, concats, reframes for YouTube, TikTok, and Instagram aspect ratios.</p></div>
+    <div class="stage"><div class="n">layer 4</div><h3>Compose</h3><p><code>Remotion</code> for programmatic titles, intros, overlays, and subtitles as React components — versioned like code, not clicked together.</p></div>
+    <div class="stage"><div class="n">layer 5</div><h3>Augment</h3><p><code>ElevenLabs</code> voiceover where the take failed, <code>fal.ai</code> for b-roll gaps and image assets. Fill holes, don't fabricate the film.</p></div>
+    <div class="stage"><div class="n">layer 6</div><h3>Polish</h3><p>Final pass in Descript or CapCut — the human taste layer. Music, pacing, the last 10% that makes it watchable.</p></div>
+  </div>
+</section>
+
+<footer>
+  <p>video v1.0.0 — <a href="https://github.com/rahulmodii/video">source</a> · MIT · based on the ECC video-editing skill by <a href="https://github.com/affaan-m/everything-claude-code">Affaan Mustafa</a></p>
+  <p>packaged by <a href="https://rahulmodi.dev">rahulmodi.dev</a></p>
+</footer>
+
+</div>
+<script>
+document.querySelectorAll('.copy').forEach(b=>{
+  b.addEventListener('click',()=>{
+    navigator.clipboard.writeText(b.dataset.c).then(()=>{
+      b.textContent='copied';b.classList.add('done');
+      setTimeout(()=>{b.textContent='copy';b.classList.remove('done')},1600);
+    });
+  });
+});
+</script>
+</body>
+</html>
